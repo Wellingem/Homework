@@ -1,0 +1,55 @@
+---
+title: "Welling Basic R Assignment"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+opts_knit$set(root.dir='./')
+```
+
+Reading the dataset into R:
+```{r}
+tgpp <- read.csv("./data/tgpp.csv", header=T)
+```
+
+#1. What are the names of the columns in the dataset?
+```{r}
+names(tgpp)
+```
+
+#2. How many rows and columns does this dataset have?
+```{r}
+nrow(tgpp) #number of rows
+
+ncol(tgpp) #number of columns
+
+```
+
+#3. What kind of object is each data column?
+```{r}
+sapply(tgpp, class)
+```
+
+#4. What are the values of the the datafile for rows 1, 5, and 8 at columns 3, 7, and 10?
+```{r}
+tgpp[c(1,5,8), c(3,7,10)]
+```
+
+#5. Create a pdf of the relationship between the variables “scale” and “richness”. Scale is the area in square meters of the quadrat in which richness was recorded. Be sure to label your axes clearly, and choose a color you find pleasing for the points.
+
+```{r}
+pdf('tgpp_fig1.pdf')
+plot(tgpp$scale, tgpp$richness, xlab="Scale (square meter)", ylab="Species Richness", col="darkblue")
+dev.off()
+```
+```{r}
+plot(tgpp$scale, tgpp$richness, xlab="Scale (square meter)", ylab="Species Richness", col="darkblue")
+```
+
+What happens to your plot when you set the plot argument log equal to ‘xy’. plot(..., log='xy')?
+```{r}
+plot(tgpp$scale, tgpp$richness, xlab="log(Scale) (square meter)", ylab="log(Species Richness)", col="darkblue", log="xy")
+```
+
