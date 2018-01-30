@@ -12,7 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 Read in tree data, metadata can be found in: `./data/tree_metadata.txt`
 
 ```{r}
-trees = read.csv('treedata_subset.csv', header=T)
+trees <- read.csv('treedata_subset.csv', header=T)
+
+head(trees)
 ```
 
 1. Carry out an exploratory analysis using the tree dataset. 
@@ -20,15 +22,67 @@ Develop and compare models for species cover for a habitat generalist
 [_*Acer rubrum*_ (Red maple)](http://www.durhamtownship.com/blog-archives/pix/November1407.jpg) 
 and a habitat specialist [_*Abies fraseri*_ (Frasier fir)](https://upload.wikimedia.org/wikipedia/commons/d/d0/Abies_fraseri_Mitchell.jpg). 
 Because this dataset includes both continuous and discrete explanatory
-variables use the function `Anova` in the packages `car` as such
+variables use the function `Anova` in the packages `car` as such.
+This will estimate partial effect sizes, variance explained, and p-values for 
+each explanatory variable included in the model.
 
 ```{r}
-#library(car)
-#Anova(my_mod, type=3)
-```
+library(car)
 
-This will estimate partial effect sizes, variance explained, and p-values for 
-each explanatory variable included in the model. 
+#subseting the data 
+A_rubrum <- trees[trees$species=="Acer rubrum",]
+
+
+#Exploratory analysis for A. rubrum:
+Ar_mod1 <- aov(A_rubrum$cover~A_rubrum$elev+A_rubrum$tci+A_rubrum$streamdist+
+                 A_rubrum$disturb+A_rubrum$beers)
+summary(Ar_mod1)
+Anova(Ar_mod1, type=3)
+
+#based on initial model, disturbance is not significant and will be 
+# taken out of model
+Ar_mod2 <- aov(A_rubrum$cover~A_rubrum$elev+A_rubrum$tci+A_rubrum$streamdist+
+                 A_rubrum$beers)
+summary(Ar_mod2)
+Anova(Ar_mod2, type=3)
+
+#tci will be taken out of the model as well based on significance values
+#of previous model
+Ar_mod3 <- aov(A_rubrum$cover~A_rubrum$elev+A_rubrum$streamdist+
+                 A_rubrum$beers)
+summary(Ar_mod3)
+Anova(Ar_mod3, type=3)
+
+AIC(Ar_mod1)
+AIC(Ar_mod2)
+AIC(Ar_mod3)
+```
+For Acer rubrum, it seems as though elevation, distance from streams, tci, and beers
+are important for the cover of this species.
+
+```{r}
+#subsetting the data
+A_fraseri <- trees[trees$species=="Abies fraseri",]
+
+#Exploratory analysis for A. fraseri:
+Af_mod1 <- aov(A_fraseri$cover~A_fraseri$elev+A_fraseri$tci+A_fraseri$streamdist+
+                 A_fraseri$disturb+A_fraseri$beers)
+summary(Af_mod1)
+Anova(Af_mod1, type=3)
+
+#based on the first model, it will only be run with elevation
+Af_mod2 <- aov(A_fraseri$cover~A_fraseri$elev)
+summary(Af_mod2)
+Anova(Af_mod2, type=3)
+
+AIC(Af_mod1)
+AIC(Af_mod2)
+
+```
+Elevation seems to be the only important aspect for Abies fraseri cover.
+
+
+ 
 
 Compare the p-values you observe using the function `Anova` to those generated
  using `summary`. 
@@ -56,8 +110,8 @@ Your new model calls will look as follows:
 #             family='poisson')
 ```
 
-    For assessing the degree of variation explained you can use a 
-    pseudo-R-squared statistic (note this is just one of many possible)
+For assessing the degree of variation explained you can use a 
+pseudo-R-squared statistic (note this is just one of many possible)
 
 ```{r}
 #pseudo_r2 = function(glm_mod) {
@@ -65,15 +119,15 @@ Your new model calls will look as follows:
  #}
 ```
 
-    Compare the residual sums of squares between the traditional OLS 
-    and glm models using `anova` (Note: not `Anova`) as such
+Compare the residual sums of squares between the traditional OLS 
+ and glm models using `anova` (Note: not `Anova`) as such
 
 ```{r}
 #anova(acer_ols, acer_glm)
 ```
 
-    Does it appear that changing the error distribution changed the
-    results much? In what ways? 
+Does it appear that changing the error distribution changed the
+results much? In what ways? 
 
 3. Provide a plain English summary (i.e., no statistics) of what you have
 found and what conclusions we can take away from your analysis?
