@@ -32,33 +32,39 @@ library(car)
 #subseting the data 
 A_rubrum <- trees[trees$species=="Acer rubrum",]
 
+#graphing data
+A_rubrum_sub<-subset.data.frame(A_rubrum, select = c(cover, elev, tci, streamdist, beers))
+pairs(A_rubrum_sub, lower.panel = panel.smooth, upper.panel = panel.cor)
+```
 
+```{r}
 #Exploratory analysis for A. rubrum:
-Ar_mod1 <- aov(A_rubrum$cover~A_rubrum$elev+A_rubrum$tci+A_rubrum$streamdist+
+Ar_mod1 <- lm(A_rubrum$cover~A_rubrum$elev+A_rubrum$tci+A_rubrum$streamdist+
                  A_rubrum$disturb+A_rubrum$beers)
 summary(Ar_mod1)
 Anova(Ar_mod1, type=3)
 
-#based on initial model, disturbance is not significant and will be 
+#based on initial model, disturbance and tci are not significant and will be 
 # taken out of model
-Ar_mod2 <- aov(A_rubrum$cover~A_rubrum$elev+A_rubrum$tci+A_rubrum$streamdist+
+Ar_mod2 <- lm(A_rubrum$cover~A_rubrum$elev+A_rubrum$streamdist+
                  A_rubrum$beers)
 summary(Ar_mod2)
 Anova(Ar_mod2, type=3)
 
-#tci will be taken out of the model as well based on significance values
-#of previous model
-Ar_mod3 <- aov(A_rubrum$cover~A_rubrum$elev+A_rubrum$streamdist+
-                 A_rubrum$beers)
-summary(Ar_mod3)
-Anova(Ar_mod3, type=3)
 
 AIC(Ar_mod1)
 AIC(Ar_mod2)
-AIC(Ar_mod3)
 ```
-For Acer rubrum, it seems as though elevation, distance from streams, tci, and beers
-are important for the cover of this species.
+Without looking for interaction, it seems as though elevation, distance from streams, and beers
+are important for the cover of this species, however the model with tci and disturbance built in is almost just as good.
+
+```{r}
+#Checking for interaction
+Ar_mod3 <- lm(A_rubrum$cover~A_rubrum$elev*A_rubrum$tci*A_rubrum$streamdist*
+                 A_rubrum$disturb*A_rubrum$beers)
+Anova(Ar_mod3, type=3)
+```
+There is not great evidence for a lot of interaction among variables. So, elevation, distance, and beers seems to explain A. rubrum cover best. 
 
 ```{r}
 #subsetting the data
