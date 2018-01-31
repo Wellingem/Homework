@@ -64,43 +64,78 @@ Ar_mod3 <- lm(A_rubrum$cover~A_rubrum$elev*A_rubrum$tci*A_rubrum$streamdist*
                  A_rubrum$disturb*A_rubrum$beers)
 Anova(Ar_mod3, type=3)
 ```
+```{r}
+plot(Ar_mod2)
+```
+
+
 There is not great evidence for a lot of interaction among variables. So, elevation, distance, and beers seems to explain A. rubrum cover best. 
 
 ```{r}
 #subsetting the data
 A_fraseri <- trees[trees$species=="Abies fraseri",]
 
+#graphing data
+A_fraseri_sub<-subset.data.frame(A_fraseri, select = c(cover, elev, tci, streamdist, beers))
+pairs(A_fraseri_sub, lower.panel = panel.smooth, upper.panel = panel.cor)
+```
+
+```{r}
 #Exploratory analysis for A. fraseri:
-Af_mod1 <- aov(A_fraseri$cover~A_fraseri$elev+A_fraseri$tci+A_fraseri$streamdist+
+Af_mod1 <- lm(A_fraseri$cover~A_fraseri$elev+A_fraseri$tci+A_fraseri$streamdist+
                  A_fraseri$disturb+A_fraseri$beers)
 summary(Af_mod1)
 Anova(Af_mod1, type=3)
 
 #based on the first model, it will only be run with elevation
-Af_mod2 <- aov(A_fraseri$cover~A_fraseri$elev)
+Af_mod2 <- lm(A_fraseri$cover~A_fraseri$elev)
 summary(Af_mod2)
 Anova(Af_mod2, type=3)
 
 AIC(Af_mod1)
 AIC(Af_mod2)
-
 ```
 Elevation seems to be the only important aspect for Abies fraseri cover.
+However, taking out all other factors does not change the strength of the model
+substantially.
 
+```{r}
+#Checking for interaction
+Af_mod3 <- aov(A_fraseri$cover~A_fraseri$elev*A_fraseri$tci*A_fraseri$streamdist*
+                 A_fraseri$disturb*A_fraseri$beers)
+Anova(Af_mod3, type=3, singular.ok=TRUE)
+```
+There does not seem to be substantial evidence for interaction. 
+```{r}
+plot(Af_mod2)
+```
 
- 
 
 Compare the p-values you observe using the function `Anova` to those generated
  using `summary`. 
 
 For each species address the following additional questions:
 
-        * how well does the exploratory model appear to explain cover?
-        * which explanatory variables are the most important?
-        * do model diagnostics indicate any problems with violations of
-        OLS assumptions?
-        * are you able to explain variance in one species better than another, 
-        why might this be the case?
+How well does the exploratory model appear to explain cover?
+  For A. rubrum, it takes multiple factors to explain cover, and the adjusted r-
+  squared value is still low (0.03), so the model does not seem to explain cover well. 
+  However, for A. fraseri, elevation helps explain much more about cover with an
+  adjusted r-squared of 0.47. 
+  
+Which explanatory variables are the most important?
+  For A. rubrum, elevation, distance from streams, and beers seem to be important,
+  and for A. fraseri, only elevation seems important.
+  
+Do model diagnostics indicate any problems with violations of OLS assumptions?
+  Neither of the best models found for the two species have normally distributed
+  residuals.
+
+Are you able to explain variance in one species better than another,
+why might this be the case?
+  The variance is more explained for A. fraseri. As a specialist, this species 
+  will be in a specific type of habitat, and so environmental factors shouldn't be 
+  as varied as for the generalist.
+
 
 2. You may have noticed that the variable cover is defined as 
 positive integers between 1 and 10. and is therefore better treated
@@ -112,31 +147,69 @@ The Poisson distribution generates integers 0 to positive infinity so this may p
 Your new model calls will look as follows:
 
 ```{r}
-#acer_glm = glm(cover ~ tci + elev + ... , data= my_data, 
-#             family='poisson')
+Ar_glm1 <- glm(A_rubrum$cover~A_rubrum$elev+A_rubrum$tci+A_rubrum$streamdist+
+                 A_rubrum$disturb+A_rubrum$beers, family='poisson')
+Anova(Ar_glm1, type=3)
+
+#based on above model, tci and disturbance will be taken out
+Ar_glm2 <- glm(A_rubrum$cover~A_rubrum$elev+A_rubrum$streamdist+
+                A_rubrum$beers, family='poisson')
+Anova(Ar_glm2, type=3)
+
+AIC(Ar_glm1)
+AIC(Ar_glm2)
 ```
+
+
+```{r}
+Af_glm1 <- glm(A_fraseri$cover~A_fraseri$elev+A_fraseri$tci+A_fraseri$streamdist+
+                 A_fraseri$disturb+A_fraseri$beers, family = 'poisson')
+Anova(Af_mod1, type=3)
+
+#based on the above model, it will only be run with elevation
+Af_glm2 <- glm(A_fraseri$cover~A_fraseri$elev, family = 'poisson')
+Anova(Af_glm2, type=3)
+
+AIC(Af_glm1)
+AIC(Af_glm2)
+```
+
 
 For assessing the degree of variation explained you can use a 
 pseudo-R-squared statistic (note this is just one of many possible)
 
 ```{r}
-#pseudo_r2 = function(glm_mod) {
-#    1 -  glm_mod$deviance / glm_mod$null.deviance
- #}
+pseudo_r2 = function(glm_mod) {
+    1 -  glm_mod$deviance / glm_mod$null.deviance
+}
+
+pseudo_r2(Ar_glm2)
+pseudo_r2(Af_glm2)
 ```
 
 Compare the residual sums of squares between the traditional OLS 
  and glm models using `anova` (Note: not `Anova`) as such
 
 ```{r}
-#anova(acer_ols, acer_glm)
+#for A. rubrum
+anova(Ar_mod2, Ar_glm2)
+
+#for A. fraseri
+anova(Af_mod2, Af_glm2)
 ```
 
 Does it appear that changing the error distribution changed the
 results much? In what ways? 
+Although the result does not seem largely changed, the residual sums of squares for 
+the GLS models are much less than for OLS. But the important variables and variation
+explained for each species has not changed.
 
 3. Provide a plain English summary (i.e., no statistics) of what you have
 found and what conclusions we can take away from your analysis?
+For A. rubrum, the variable that best help explain cover are elevation, distance from
+streams, and the slope aspect, however, this model does not explain the variation 
+well. For A. fraseri, elevation best explains cover and does so rather well compared to
+the models built for A. rubrum.
 
 4. (optional) Examine the behavior of the function `step()` using the 
 exploratory models developed above. This is a very simple and not very
