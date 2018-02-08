@@ -17,6 +17,9 @@ library(vegan)
 data(dune)
 data(dune.env)
 ?dune
+
+head(dune)
+head(dune.env)
 ```
 
 1. Conduct an indirect ordination on the dune plant community. Specifically,
@@ -26,15 +29,19 @@ environmental variable "Moisture". Describe how you interpret the
 graphic. What is the goal of creating such a plot? Does this analysis suggest
 any interesting findings with respect to the dune vegetation?
 
+The sites that appear closest together have the higher degrees of similarity. It looks like the dune vegitation is arranged along a moisture gradient. 
+
 ```{r}
-#plot(dune_mds, type='n')
-#text(dune_mds, 'sp', cex=.5)
+dune_mds <- metaMDS(dune)
+
+plot(dune_mds, type='n')
+text(dune_mds, 'sp', cex=.5)
  # generate vector of colors 
-#color_vect = rev(terrain.colors(6))[-1]
-#points(dune_mds, 'sites', pch=19, 
-#           col=color_vect[dune.env$Moisture])
-#legend('topright', paste("Moisture =", 1:5, sep=''), 
- #          col=color_vect, pch=19)
+color_vect = rev(terrain.colors(6))[-1]
+points(dune_mds, 'sites', pch=19, 
+           col=color_vect[dune.env$Moisture])
+legend('topright', paste("Moisture =", 1:5, sep=''), 
+           col=color_vect, pch=19)
     ```
 
 2. Carry out a direct ordination using CCA in order to test any potential 
