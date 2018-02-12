@@ -29,7 +29,8 @@ environmental variable "Moisture". Describe how you interpret the
 graphic. What is the goal of creating such a plot? Does this analysis suggest
 any interesting findings with respect to the dune vegetation?
 
-The sites that appear closest together have the higher degrees of similarity. It looks like the dune vegitation is arranged along a moisture gradient. 
+The sites that appear closest together have the higher degrees of similarity. This
+type of plot is a good way to visualize groupings and/or clusters of similarities. It looks like the dune vegitation is arranged along a moisture gradient. 
 
 ```{r}
 dune_mds <- metaMDS(dune)
@@ -50,6 +51,40 @@ carry out a test of the entire model (i.e., including all constrained axes)
 and also carry out tests at the scale of individual explanatory variables
 you included in your model if you included more than one variable. Plot your 
 results.
+
+plot(cca_tree, type='n', scaling=1)
+orditorp(cca_tree, display='sp', cex=0.5, scaling=1, col='blue')
+text(cca_tree, display='bp', col='red')
+
+```{r}
+#all variables included
+cca_dune <- cca(dune~., data=dune.env)
+anova(cca_dune, by="margin", permutations=999)
+
+plot(cca_dune, type='n', scaling=1)
+orditorp(cca_dune, display='sp', cex=0.5, scaling=1, col='blue')
+text(cca_dune, display='bp', col='red')
+```
+After this analysis, only A1 and moisture seem to explain a large portion of variance.
+
+```{r}
+#only A1
+cca_dune2 <- cca(dune~dune.env$A1)
+anova(cca_dune2, by="margin", permutations=999)
+
+plot(cca_dune2, type='n', scaling=1)
+orditorp(cca_dune2, display='sp', cex=0.5, scaling=1, col='blue')
+text(cca_dune2, display='bp', col='red')
+```
+```{r}
+#only moisture
+cca_dune3 <- cca(dune~dune.env$Moisture)
+anova(cca_dune3, by="margin", permutations=999)
+
+plot(cca_dune3, type='n', scaling=1)
+orditorp(cca_dune3, display='sp', cex=0.5, scaling=1, col='blue')
+text(cca_dune3, display='bp', col='red')
+```
 
 3. Do your two analyses agree with one another or complement one another or do
 these two analyses seem to be suggesting different take home messages? Which
