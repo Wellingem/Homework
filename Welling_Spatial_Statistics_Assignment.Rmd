@@ -10,11 +10,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Spatial Modeling Assignment
 
 ```{r}
-#library(vegan)
-#data(BCI)
+library(vegan)
+data(BCI)
 ## UTM Coordinates (in metres)
-#BCI_xy = data.frame(x = rep(seq(625754, 626654, by=100), each=5), 
-#                    y = rep(seq(1011569,  1011969, by=100), len=50))
+BCI_xy = data.frame(x = rep(seq(625754, 626654, by=100), each=5), 
+                    y = rep(seq(1011569,  1011969, by=100), len=50))
 ```
 
 1) Examine if there is evidence of spatial dependence in a rare and a common
