@@ -15,10 +15,47 @@ data(BCI)
 ## UTM Coordinates (in metres)
 BCI_xy = data.frame(x = rep(seq(625754, 626654, by=100), each=5), 
                     y = rep(seq(1011569,  1011969, by=100), len=50))
+head(BCI)
 ```
 
 1) Examine if there is evidence of spatial dependence in a rare and a common
 species in the BCI tree dataset
+
+
+```{r}
+#looking at overall abundance of species
+BCI_sum <- sapply(BCI, sum)
+boxplot(BCI_sum)
+plot(density(log10(BCI_total)))
+abline(v=log10(25), col='red')
+
+#What is the midpoint?
+quantile(BCI_sum, 0.5)
+
+BCI_total <- apply(BCI, 2, sum)
+
+BCI_new <- rbind(BCI, BCI_total)
+
+#subset data to where everything below the midpoint is rare, and everything above is #common
+common = BCI
+for (i in ncol(BCI_new)) {
+  sp_abundance = sum(BCI[,1])
+  if (sp_abundance < 25)
+    common = common[,-i]
+}
+
+rare = BCI
+for (i in ncol(BCI_new)) {
+  sp_abundance = sum(BCI[,1])
+  if (sp_abundance > 25)
+    common = common[,-i]
+}
+```
+```{r}
+#is there spatial dependence in rare versus abundant species?
+
+```
+
 
 
 2) Build two generalized linear models to predict the abundance of the species
