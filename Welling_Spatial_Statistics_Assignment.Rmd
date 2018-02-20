@@ -11,11 +11,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(vegan)
+library(nlme)
+library(vegan)
 data(BCI)
 ## UTM Coordinates (in metres)
 BCI_xy = data.frame(x = rep(seq(625754, 626654, by=100), each=5), 
                     y = rep(seq(1011569,  1011969, by=100), len=50))
-head(BCI)
 ```
 
 1) Examine if there is evidence of spatial dependence in a rare and a common
@@ -26,6 +27,14 @@ species in the BCI tree dataset
 #looking at overall abundance of species
 BCI_sum <- sapply(BCI, sum)
 boxplot(BCI_sum)
+
+#What is the midpoint?
+quantile(BCI_sum, 0.5)
+
+BCI_total <- apply(BCI, 2, sum)
+
+BCI_new <- rbind(BCI, BCI_total)
+
 plot(density(log10(BCI_total)))
 abline(v=log10(25), col='red')
 
@@ -92,17 +101,86 @@ Neither seem to differ from the null model. So there doesn't seem to be spatial 
 Specifically examine the following species as predictor variables:
 
 ```{r}
-#sp_ids = c("Cordia.lasiocalyx", "Hirtella.triandra",
-#           "Picramnia.latifolia", "Quassia.amara",
-#           "Tabernaemontana.arborea", "Trattinnickia.aspera", 
-#           "Xylopia.macrantha")
+#Renaming specific species with more managable abbreviations
+sp_ids = c("Cordia.lasiocalyx", "Hirtella.triandra",
+           "Picramnia.latifolia", "Quassia.amara",
+           "Tabernaemontana.arborea", "Trattinnickia.aspera", 
+           "Xylopia.macrantha")
+
+sp_a <- BCI[,'Drypetes.standleyi']
+sp_b <- BCI[, 'Cordia.lasiocalyx']
+sp_c <- BCI[, 'Hirtella.triandra']
+sp_d <- BCI[, 'Picramnia.latifolia']
+sp_e <- BCI[, 'Quassia.amara']
+sp_f <- BCI[, 'Tabernaemontana.arborea']
+sp_g <- BCI[, 'Trattinnickia.aspera']
+sp_h <- BCI[, 'Xylopia.macrantha']
+
+BCI_short <- cbind(sp_a, sp_b, sp_c, sp_d, sp_e, sp_f, sp_g, sp_h)
+
 ```
 Note renaming the species ids to something a little easier to work with like
 "sp_a", "sp_b" will make model construction a little less cumbersome
 
+
 * Model 1: only include a single species as a predictor variable
+```{r}
+#Model with Cordia.lasiocalyx
+tree <- apply(BCI_short, 1, function(x) sum(x > 0))
+tree_dat = data.frame(tree, BCI_short, BCI_xy)
+
+tree_lm1 = gls(sp_a ~ sp_b, data=tree_dat)
+
+par(mfrow=c(1,1))
+plot(Variogram(tree_lm1, form= ~ x + y)) 
+res = residuals(tree_lm1)
+plot(dist(tree_dat[, c('x', 'y')]), dist(res))
+lines(lowess(dist(tree_dat[, c('x', 'y')]), dist(res)), col='red', lwd=2)
+abline(v = max_dist, col='red', lwd=3, lty=2)
+
+tree_exp = update(tree_lm1, corr=corExp(form=~x + y)) 
+plot(Variogram(tree_exp, maxDist = max_dist))
+
+plot(Variogram(tree_exp, resType='normalized', maxDist = max_dist))
+
+tree_rat_nug = update(tree_lm1, corr=corRatio(form=~x + y, nugget=T))
+
+plot(Variogram(tree_rat_nug, maxDist = max_dist))
+plot(Variogram(tree_rat_nug, resType='n', maxDist = max_dist))
+
+anova(tree_lm1, tree_exp, tree_rat_nug, test=F)
+
+summary(tree_lm1)
+summary(tree_rat_nug)
+```
 
 * Model 2: include all of the species as predictor variables
+```{r}
+#Model with all species
+tree_lm2 = gls(sp_a ~ sp_b + sp_c + sp_d + sp_e + sp_f + sp_g + sp_h, data=tree_dat)
+
+par(mfrow=c(1,1))
+plot(Variogram(tree_lm2, form= ~ x + y)) 
+res = residuals(tree_lm2)
+plot(dist(tree_dat[, c('x', 'y')]), dist(res))
+lines(lowess(dist(tree_dat[, c('x', 'y')]), dist(res)), col='red', lwd=2)
+abline(v = max_dist, col='red', lwd=3, lty=2)
+
+tree_exp2 = update(tree_lm2, corr=corExp(form=~x + y)) 
+plot(Variogram(tree_exp2, maxDist = max_dist))
+
+plot(Variogram(tree_exp2, resType='normalized', maxDist = max_dist))
+
+tree_rat_nug2 = update(tree_lm2, corr=corRatio(form=~x + y, nugget=T))
+
+plot(Variogram(tree_rat_nug2, maxDist = max_dist))
+plot(Variogram(tree_rat_nug2, resType='n', maxDist = max_dist))
+
+anova(tree_lm2, tree_exp2, tree_rat_nug2, test=F)
+
+summary(tree_lm2)
+summary(tree_rat_nug2)
+```
 
 With both models examine the spatial dependence of the residuals using the 
 function `Variogram`. Model the spatial dependence in the residuals using one
@@ -110,8 +188,11 @@ of the error structures available.
 
 * Did including the spatial error term have a large impact on the coefficients
 of the model?
+  Including the spatial error term in the GLS models made them quite a bit better in both cases. It also has an effect on the coefficients in the models.
 
 * Did including the spatial error terms significantly improve model fit (use 
 function `anova` to carry out model comparison)?
+  When comparing the GLS with no spatial error to an exponential or the rational quadratic model, it does significantly improve using the error term. However, when comparing between the exponential and rational quadratic forms, there is no significant change in either case.
 
 * Explain why you did or did not observe a difference in the influence of adding the spatial error term between the two models.
+  By building the spatial error term into the model, we take into consideration the potential non-independence of samples that are closer together. Building that into the model makes the model better.
