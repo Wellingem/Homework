@@ -47,23 +47,26 @@ BCI_new <- rbind(BCI, BCI_total)
 
 #subset data to where everything below the midpoint is rare, and everything above is common
 common = BCI
-for (i in ncol(BCI_new)) {
+for (i in 1:ncol(BCI)) {
   sp_abundance = sum(BCI[,1])
   if (sp_abundance < 25)
     common = common[,-i]
 }
 
 rare = BCI
-for (i in ncol(BCI_new)) {
-  sp_abundance = sum(BCI[,1])
+for (i in 1:ncol(BCI)) {
+  sp_abundance = sum(BCI[,i])
   if (sp_abundance > 25)
     rare = rare[,-i]
 }
 
+head(common)
+head(rare)
+
 ```
 ```{r}
 #is there spatial dependence in rare versus abundant species?
-sr1 <- apply(common, 1, function(x) sum(x>0))
+sr1 <- apply(common, 1, function(x) sum(x > 0))
 sr1_dist <- dist(sr1)
 xy_dist <- dist(BCI_xy)
 max_dist = max(xy_dist) / 2
