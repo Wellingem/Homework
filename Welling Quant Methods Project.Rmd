@@ -1,0 +1,41 @@
+---
+title: "Welling_Quant_Methods_Project"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#generate data for example
+set.seed(10) # this is done so that the same results are generated each time
+x1 = runif(90)
+x2 = rbinom(90, 10, .5)
+x3 = rgamma(90, .1, .1)
+
+plot(density(x1))
+plot(density(x2))
+plot(density(x3))
+
+#organize predictors in data frame
+sim_data = data.frame(x1, x2, x3)
+#create noise b/c there is always error in real life
+epsilon = rnorm(90, 0, 3)
+#generate response: additive model plus noise, intercept=0
+sim_data$y = 2*x1 + x2 + 3*x3 + epsilon
+
+head(sim_data)
+
+Simulate data for project code:
+
+
+Models for the thermal performance curve:
+
+
+
+```{r}
+require(devtools)
+install_github("WeibFit", "JackStat")
+require(WeibFit)
+```
+
